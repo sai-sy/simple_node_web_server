@@ -1,4 +1,5 @@
 var fs = require('fs');
+var helpers = require('./helpers')
 var path = require('path');
 
 var lib = {};
@@ -29,4 +30,57 @@ lib.create = function(dir,file,data,callback){
   });
 }
 
+
+lib.read = function(dir,file,callback){
+  fs.readFile(lib.baseDir+dir+'/'+file+'.json','utf8',function(err,data){
+    if (!err) {
+      var parsedData = helpers.parseJsonToObject(data);
+      callback(false, parsedData);
+    } else {
+      callback(err,data);
+    }
+  });
+}
+
+lib.update = function(dir,file,data,callback){
+  fs.open(lib.baseDir+dir+'/'+file+'.json','r+',function(err,fileDescriptor){
+    if (!err && fileDescriptor) {
+      var stringData = JSON.stringify(data);
+
+      fs.truncate(fileDescriptor, function(err){
+        if(!err){
+          fs.writeFile(fileDescriptor, stringData, function(err){
+            if (!err) {
+              callback(false);
+            } else {
+              callback('error closing the file')
+            }
+          });
+        } else {
+          callback('Error truncating file')
+        }
+      })
+
+    } else {
+      callback("could not open the file for updating, it maybe not exist yet");
+    }
+  });
+};
+
+
+
+
+lib.delete = function(dir,file,callback){
+  fs.unlink(lib.baseDir+dir+'/'+file+'.json',function(err){
+    if (!err) {
+      callback(false);
+    } else {
+      callback('having trouble deleting file');
+    }
+  })
+}
+
+
 module.exports = lib;
+
+

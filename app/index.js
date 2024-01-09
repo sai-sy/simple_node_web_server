@@ -10,6 +10,11 @@ var url = require('url');
 var fs = require('fs');
 var StringDecoder = require('string_decoder').StringDecoder;
 var config = require('./config');
+var _data = require('./lib/data');
+var handlers = require('./lib/handlers');
+var helpers = require('./lib/helpers');
+ 
+
 
 var httpServer = http.createServer(function(req, res){
   unifiedServer(req, res);
@@ -17,7 +22,10 @@ var httpServer = http.createServer(function(req, res){
 
 var httpsServerOptions = {
   'key': fs.readFileSync('./https/key.pem'), 
-  'cert': fs.readFileSync('./https/cert.pem') 
+  'cert': fs.readFileSync('./https/cert.pem')
+
+
+
 }
 
 
@@ -65,7 +73,7 @@ var unifiedServer = function(req, res){
             "method" : method,
             "queryStringObject" : queryStringObject,
             "headers" : headers,
-            "payload" : buffer
+            "payload" : helpers.parseJsonToObject(buffer),
         }
 
         // route request to handler
@@ -96,19 +104,9 @@ httpServer.listen(config.httpPort, function(){
 });
 
 
-//handlers
-var handlers = {};
-
-handlers.ping = function(data,callback){
-    // Callback a HTTP status code and a payload object
-    callback(200);
-};
-
-handlers.notFound = function(data,callback){
-    callback(404);
-};
 
 // define a req routers
 var router = {
-    'sample' : handlers.sample   
+  'sample' : handlers.sample,
+  'users' : handlers.users,
 };
